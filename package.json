@@ -1,0 +1,31 @@
+{
+	"name": "fcc-exercise-tracker",
+	"version": "0.0.1",
+	"description": "A REST API project, part of Free Code Camp's curriculum",
+	"main": "server.js",
+	"scripts": {
+		"start": "node server.js"
+	},
+	"dependencies": {
+		"express": "^4.14.0",
+		"mongoose": "^5.10.0",
+		"body-parser": "^1.15.2",
+		"cors": "^2.8.1",
+		"shortid": "^2.2.6",
+		"dotenv": "^8.2.0"
+	},
+	"engines": {
+		"node": "6.9.1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/fuzzyray/exercise-tracker-api.git"
+	},
+	"license": "MIT",
+	"keywords": [
+		"node",
+		"express",
+		"api",
+		"freecodecamp"
+	]
+}
