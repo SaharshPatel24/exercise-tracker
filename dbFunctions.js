@@ -37,6 +37,39 @@ const createUser = (userName, cb) => {
   });
 };
 
+const createExercise = ({userId, description, duration, date}, cb) => {
+  User.findById(userId, (err, data) => {
+    //console.log(`data from db: ${data}`);
+    if (err) {
+      cb(err, null);
+    } else if (data) {
+      const userName = data.username;
+      const newExercise = new Exercise({
+        userid: data._id,
+        description: description,
+        duration: duration,
+        date: date,
+      });
+      newExercise.save((err, data) => {
+        if (err) {
+          cb(err, null);
+        } else {
+          const myData = {
+            username: userName,
+            _id: data.userid,
+            description: data.description,
+            duration: data.duration,
+            date: data.date,
+          };
+          cb(null, myData);
+        }
+      });
+    } else {
+      // User doesn't exist in User collection
+      cb({'Error': 'Unable to create record'}, null);
+    }
+  });
+};
 // Read
 
 const findByUserName = (userName, cb) => {
@@ -61,6 +94,34 @@ const getUsers = (cb) => {
       });
 };
 
+const getUserById = (userId, cb) => {
+  User.findById(userId, (err, data) => {
+    if (err) {
+      cb(err, null)
+    } else {
+      cb(null, data)
+    }
+  })
+}
+
+const getExercisesByUserId = (userId, cb) => {
+  User.findById(userId, (err, data) => {
+    if (err) {
+      cb(err, null);
+    } else if (data) {
+      Exercise.find({userid: data['_id']}, (err, data) => {
+        if (err) {
+          cb(err, null);
+        } else {
+          cb(null, data);
+        }
+      });
+    } else {
+      // userid doesn't exist in user collection
+      cb({'Error': 'No data found'}, null);
+    }
+  });
+};
 // Update
 
 // Delete
@@ -73,5 +134,8 @@ const connect = (dbURI) => {
 
 exports.connect = connect;
 exports.createUser = createUser;
+exports.createExercise = createExercise;
 exports.getUsers = getUsers;
+exports.getUserById = getUserById;
+exports.getExercisesByUserId = getExercisesByUserId;
 exports.findByUserName = findByUserName;

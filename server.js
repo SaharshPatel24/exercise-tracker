@@ -7,6 +7,9 @@ const app = express();
 // Connect to database and import functions
 const createUser = require('./dbFunctions').createUser;
 const getUsers = require('./dbFunctions').getUsers;
+const getUserById = require('./dbFunctions').getUserById;
+const createExercise = require('./dbFunctions').createExercise;
+const getExercisesByUserId = require('./dbFunctions').getExercisesByUserId;
 require('./dbFunctions').connect(process.env.MONGO_URI);
 
 app.use(cors());
@@ -24,40 +27,99 @@ app.get('/api/hello', (req, res) => {
 });
 
 app.post('/api/exercise/new-user', (req, res) => {
-  console.log(req.body.username)
   createUser(req.body.username, (err, data) => {
     if (err) {
-      res.json(err)
+      res.json(err);
     } else {
       //console.log(data, Array.isArray(data))
-      res.json({'username': data['username'], '_id': data['_id']})
+      res.json({'username': data['username'], '_id': data['_id']});
     }
-  })
-});
-
-app.post('/api/exercise/add', (req, res) => {
-  console.log(req.body);
-  /*
-  {
-  userId: 'thisisanid',
-  description: 'Some description',
-  duration: '30',
-  date: '2020-08-16'
-  }
-  */
+  });
 });
 
 app.get('/api/exercise/users', (req, res) => {
   getUsers((err, data) => {
-    const formattedData = data.map(d => {
-      return {'username': d['username'], '_id': d['_id']};
+    if (err) {
+      res.json(err);
+    } else {
+      const formattedData = data.map(d => {
+        return {'username': d['username'], '_id': d['_id']};
+      });
+      res.json(formattedData);
+    }
+  });
+});
+
+app.post('/api/exercise/add', (req, res) => {
+  console.log(req.body);
+  const exercise = req.body;
+  if (!exercise['userId']) {
+    res.json({'Error': 'No userid in request'});
+  } else if (!exercise['description']) {
+    res.json({'Error': 'No description in request'});
+  } else if (!exercise['duration']) {
+    res.json({'Error': 'No duration in request'});
+  } else {
+    if (!exercise['date']) {
+      exercise['date'] = new Date();
+    } else {
+      exercise['date'] = new Date(exercise['date']);
+      if (exercise['date'].toString() === 'Invalid Date') {
+        res.json({'Error': 'Invalid Date specified in request'});
+      }
+    }
+    exercise['duration'] = +exercise['duration'];
+    if (Number.isNaN(exercise['duration'])) {
+      res.json({'Error': 'Invalid duration specified in request'});
+    }
+    createExercise(exercise, (err, data) => {
+      if (err) {
+        res.json(err);
+      } else {
+        console.log(data);
+        res.json(data);
+      }
     });
-    res.json(formattedData);
-  })
-})
+  }
+});
+
+app.get('/api/exercise/log', (req, res) => {
+  /*
+  /api/exercise/log?userId=something&from=something&to=something&limit=something
+  */
+  console.log(req.query);
+  // Add checks for values
+  getUserById(req.query.userId, (err, userData) => {
+    if (err) {
+      res.json(err)
+    } else {
+      getExercisesByUserId(req.query.userId, (err, data) => {
+        if (err) {
+          res.json(err);
+        } else {
+          //  Return will be the user object with added array log and count (total exercise count)
+          const response = {
+            username: userData.username,
+            _id: userData._id,
+            log: data.map(d => {
+              return ({
+                description: d.description,
+                duration: d.duration,
+                date: d.date
+              })
+            }),
+            count: data.length
+          }
+          res.json(response);
+        }
+      });
+    }
+  });
+});
 
 // Not found middleware
 app.use((req, res, next) => {
+  console.log(req.path);
   return next({status: 404, message: 'not found'});
 });
 
