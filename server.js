@@ -9,7 +9,7 @@ const createUser = require('./dbFunctions').createUser;
 const getUsers = require('./dbFunctions').getUsers;
 const getUserById = require('./dbFunctions').getUserById;
 const createExercise = require('./dbFunctions').createExercise;
-const getExercisesByUserId = require('./dbFunctions').getExercisesByUserId;
+const queryExerciseLog = require('./dbFunctions').queryExerciseLog;
 require('./dbFunctions').connect(process.env.MONGO_URI);
 
 app.use(cors());
@@ -88,12 +88,31 @@ app.get('/api/exercise/log', (req, res) => {
   /api/exercise/log?userId=something&from=something&to=something&limit=something
   */
   console.log(req.query);
-  // Add checks for values
+  const myQuery = {};
+  if (req.query.hasOwnProperty('limit')) {
+    const limit = +req.query.limit
+    if (!Number.isNaN(limit)) {
+      myQuery.limit = limit;
+    }
+  }
+  if (req.query.hasOwnProperty('from')) {
+    const fromDate = new Date(req.query.from)
+    if (fromDate.toString() !== "Invalid Date") {
+      myQuery.from = fromDate;
+    }
+  }
+  if (req.query.hasOwnProperty('to')) {
+    let toDate = new Date(req.query.to)
+    if (toDate.toString() !== "Invalid Date") {
+      toDate = new Date(toDate.getTime() + 86400000)
+      myQuery.to = toDate;
+    }
+  }
   getUserById(req.query.userId, (err, userData) => {
     if (err) {
       res.json(err)
     } else {
-      getExercisesByUserId(req.query.userId, (err, data) => {
+      queryExerciseLog(req.query.userId, myQuery,(err, data) => {
         if (err) {
           res.json(err);
         } else {

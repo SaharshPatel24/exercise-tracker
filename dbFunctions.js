@@ -97,23 +97,35 @@ const getUsers = (cb) => {
 const getUserById = (userId, cb) => {
   User.findById(userId, (err, data) => {
     if (err) {
-      cb(err, null)
+      cb(err, null);
     } else {
-      cb(null, data)
+      cb(null, data);
     }
-  })
-}
+  });
+};
 
-const getExercisesByUserId = (userId, cb) => {
-  User.findById(userId, (err, data) => {
+const queryExerciseLog = (userId, queryParams = {}, cb) => {
+
+  User.findById(userId, (err, userData) => {
     if (err) {
       cb(err, null);
-    } else if (data) {
-      Exercise.find({userid: data['_id']}, (err, data) => {
+    } else if (userData) {
+      let myQuery = Exercise.find({userid: userData['_id']}).sort({'date': 'ascending'});
+      if (queryParams.hasOwnProperty('limit')) {
+        myQuery = myQuery.limit(queryParams.limit);
+      }
+      if (queryParams.hasOwnProperty('from')) {
+        myQuery = myQuery.where('date').gte(queryParams.from);
+      }
+      if (queryParams.hasOwnProperty('to')) {
+        myQuery = myQuery.where('date').lt(queryParams.to);
+      }
+
+      myQuery.exec((err, logData) => {
         if (err) {
           cb(err, null);
         } else {
-          cb(null, data);
+          cb(null, logData);
         }
       });
     } else {
@@ -122,6 +134,7 @@ const getExercisesByUserId = (userId, cb) => {
     }
   });
 };
+
 // Update
 
 // Delete
@@ -137,5 +150,5 @@ exports.createUser = createUser;
 exports.createExercise = createExercise;
 exports.getUsers = getUsers;
 exports.getUserById = getUserById;
-exports.getExercisesByUserId = getExercisesByUserId;
+exports.queryExerciseLog = queryExerciseLog;
 exports.findByUserName = findByUserName;
