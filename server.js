@@ -4,7 +4,9 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
 
-// Connect to database
+// Connect to database and import functions
+const createUser = require('./dbFunctions').createUser;
+const getUsers = require('./dbFunctions').getUsers;
 require('./dbFunctions').connect(process.env.MONGO_URI);
 
 app.use(cors());
@@ -17,9 +19,42 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-app.use('/api/hello', (req, res) => {
+app.get('/api/hello', (req, res) => {
   res.json({'message': 'Hello'});
 });
+
+app.post('/api/exercise/new-user', (req, res) => {
+  console.log(req.body.username)
+  createUser(req.body.username, (err, data) => {
+    if (err) {
+      res.json(err)
+    } else {
+      //console.log(data, Array.isArray(data))
+      res.json({'username': data['username'], '_id': data['_id']})
+    }
+  })
+});
+
+app.post('/api/exercise/add', (req, res) => {
+  console.log(req.body);
+  /*
+  {
+  userId: 'thisisanid',
+  description: 'Some description',
+  duration: '30',
+  date: '2020-08-16'
+  }
+  */
+});
+
+app.get('/api/exercise/users', (req, res) => {
+  getUsers((err, data) => {
+    const formattedData = data.map(d => {
+      return {'username': d['username'], '_id': d['_id']};
+    });
+    res.json(formattedData);
+  })
+})
 
 // Not found middleware
 app.use((req, res, next) => {
