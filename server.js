@@ -87,7 +87,7 @@ app.get('/api/exercise/log', (req, res) => {
   /*
   /api/exercise/log?userId=something&from=something&to=something&limit=something
   */
-  console.log(req.query);
+  //console.log(req.query);
   const myQuery = {};
   if (req.query.hasOwnProperty('limit')) {
     const limit = +req.query.limit
@@ -138,7 +138,7 @@ app.get('/api/exercise/log', (req, res) => {
 
 // Not found middleware
 app.use((req, res, next) => {
-  console.log(req.path);
+  //console.log(req.path);
   return next({status: 404, message: 'not found'});
 });
 

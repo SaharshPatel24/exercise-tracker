@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+dotenv.config();
 
 // Schema/Model
 const UserSchema = mongoose.Schema({
@@ -59,7 +61,7 @@ const createExercise = ({userId, description, duration, date}, cb) => {
             _id: data.userid,
             description: data.description,
             duration: data.duration,
-            date: data.date,
+            date: data.date.toDateString(),
           };
           cb(null, myData);
         }
